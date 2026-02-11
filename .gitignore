@@ -1,0 +1,10 @@
+.env
+.env.dev
+.env.staging
+.env.prod
+secrets/
+node_modules/
+frontend/dist/
+__pycache__/
+*.pyc
+data/

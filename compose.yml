@@ -1,0 +1,19 @@
+services: {}
+
+networks:
+  edge:
+    name: env_edge
+  dev_net:
+    name: env_dev
+  staging_net:
+    name: env_staging
+  prod_net:
+    name: env_prod
+
+volumes:
+  data_dev:
+    name: data_dev
+  data_staging:
+    name: data_staging
+  data_prod:
+    name: data_prod

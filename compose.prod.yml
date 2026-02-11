@@ -1,0 +1,39 @@
+name: ${COMPOSE_PROJECT_NAME:-envdemo_prod}
+
+services:
+  backend_prod:
+    build: ./backend
+    container_name: backend_prod
+    environment:
+      APP_ENV: ${APP_ENV}
+      DATABASE_URL: ${DATABASE_URL}
+      LOG_LEVEL: ${LOG_LEVEL}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      API_TOKEN_SECRET_PATH: /run/secrets/api_token_secret
+    volumes:
+      - data_prod:/data
+      - ./secrets/prod/api_token_secret.txt:/run/secrets/api_token_secret:ro
+    networks:
+      - prod_net
+      - edge
+
+  frontend_prod:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_APP_ENV: ${VITE_APP_ENV}
+    container_name: frontend_prod
+    networks:
+      - prod_net
+      - edge
+
+  reverse_proxy:
+    image: nginx:alpine
+    container_name: reverse_proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - edge

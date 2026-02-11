@@ -1,0 +1,32 @@
+services:
+  backend:
+    build: ./backend
+    environment:
+      APP_ENV: ${APP_ENV}
+      DATABASE_URL: ${DATABASE_URL}
+      LOG_LEVEL: ${LOG_LEVEL}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      API_TOKEN_SECRET_PATH: /run/secrets/api_token_secret
+    volumes:
+      - ./backend:/app
+      - data_dev:/data
+      - ./secrets/dev/api_token_secret.txt:/run/secrets/api_token_secret:ro
+    ports:
+      - "${BACKEND_PORT}:8000"
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    networks:
+      - dev_net
+
+  frontend:
+    image: node:20-alpine
+    working_dir: /app
+    environment:
+      VITE_API_URL: ${VITE_API_URL}
+      VITE_APP_ENV: ${VITE_APP_ENV}
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "${FRONTEND_PORT}:5173"
+    command: ["sh", "-c", "npm install && npm run dev -- --host 0.0.0.0 --port 5173"]
+    networks:
+      - dev_net
