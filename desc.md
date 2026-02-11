@@ -5,7 +5,7 @@ OBJECTIF PÉDAGOGIQUE
   - Variables d’environnement non sensibles via .env (database_url, log_level, app_env, ports, domains…)
   - Secrets séparés (token secret, etc.) via fichiers montés (./secrets/...) ou docker secrets-like pattern.
 - Pouvoir lancer dev, staging, prod sur UNE SEULE machine sans collisions (containers, réseaux, volumes, ports).
-- Utiliser un reverse proxy Nginx sur la machine (dans docker-compose) qui route staging et prod selon le hostname.
+- Utiliser des ports différents pour staging et prod (pas de reverse proxy).
 - Produire des fichiers .env.example clairs pour chaque environnement.
 
 STACK TECHNIQUE
@@ -13,10 +13,6 @@ STACK TECHNIQUE
   - il faut utiliser uv pour gèrer les dépendance et le lancement
 - Frontend: Vue 3, 1 seul composant monofichier (ex: frontend/src/App.vue) + un main minimal
 - Docker: docker-compose avec base + overrides
-- Nginx: reverse proxy (conteneur) qui écoute sur 80/443 (pour l’exemple uniquement sur 80), et route:
-  - staging.localhost -> frontend_staging + backend_staging
-  - prod.localhost -> frontend_prod + backend_prod
-  (Tu peux utiliser juste HTTP/80 et des hostnames locaux pour l’exemple.)
 
 CONTRAINTES IMPORTANTES
 - Backend “hyper simple”: endpoints:
@@ -39,13 +35,10 @@ CONTRAINTES IMPORTANTES
   - possibilité de lancer backend en reload (uvicorn --reload)
   - frontend en dev server (Vite) exposé sur un port (ex: 5173)
 - Staging/Prod:
-  - frontend buildé et servi via Nginx (conteneur frontend) OU via Nginx reverse proxy (au choix), mais rester simple.
+  - frontend buildé et servi via Nginx (conteneur frontend), sans reverse proxy.
   - backend en mode production (pas reload).
 
 STRUCTURE DE DOSSIERS À GÉNÉRER
-- docker/
-  - nginx/
-    - nginx.conf (reverse proxy staging/prod)
 - backend/
   - main.py (unique fichier)
   - Dockerfile
@@ -70,15 +63,13 @@ STRUCTURE DE DOSSIERS À GÉNÉRER
   - Comment lancer chaque environnement
   - Comment lancer staging + prod simultanément sur la même machine
   - Comment tester via curl et via navigateur
-  - Comment configurer les hostnames (ex: /etc/hosts) pour staging.localhost et prod.localhost
 
 EXIGENCES DOCKER COMPOSE (IMPORTANT)
 - Utiliser “COMPOSE_PROJECT_NAME” ou “name:” pour isoler staging vs prod (deux stacks séparées).
 - Les services doivent être nommés par env quand nécessaire (backend_staging, backend_prod…).
 - Ports:
   - Dev: backend sur 8000, frontend sur 5173 (exposés)
-  - Staging + prod: ne PAS exposer les ports backend directement vers l’hôte; tout passe par reverse proxy
-  - Reverse proxy Nginx doit router vers les backends/frontends via réseau docker interne.
+  - Staging + prod: exposer les ports frontend + backend sur l’hôte avec des valeurs différentes
 - Volumes:
   - data_staging, data_prod distincts (SQLite)
 - Secrets:
@@ -92,7 +83,7 @@ CONFIG ENVIRONNEMENTS
   - LOG_LEVEL=debug|info
   - BACKEND_PORT=8000 (dev)
   - FRONTEND_PORT=5173 (dev)
-  - VITE_API_URL=http://localhost:8000 (dev) / http://staging.localhost (staging) / http://prod.localhost (prod)
+  - VITE_API_URL=http://localhost:8000 (dev) / http://localhost:8001 (staging) / http://localhost:8002 (prod)
   - CORS_ORIGINS=...
 - Secrets (fichiers):
   - API_TOKEN_SECRET (utilisé dans backend pour signer un token simple ou vérifier un header X-Token, au minimum)
@@ -114,7 +105,7 @@ COMMANDES À DOCUMENTER DANS README
   - montrer comment lancer les deux avec des project names distincts:
     - COMPOSE_PROJECT_NAME=myapp_staging docker compose ...
     - COMPOSE_PROJECT_NAME=myapp_prod docker compose ...
-  - et un reverse proxy unique ou deux reverse proxy (préférer un reverse proxy unique qui route les deux)
+  - ports distincts pour éviter les collisions
 
 LIVRABLE FINAL
 - Génère tous les fichiers.

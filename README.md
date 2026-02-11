@@ -7,7 +7,6 @@ Projet pédagogique minimal pour expliquer la différence entre **variables d'en
 - `backend/main.py` : un seul fichier FastAPI
 - `frontend/src/App.vue` : un seul composant Vue
 - `compose.yml` + `compose.dev.yml` + `compose.staging.yml` + `compose.prod.yml`
-- `docker/nginx/nginx.conf` : reverse proxy pour staging/prod
 - `.env.*.example` : exemples de variables non sensibles
 - `secrets.example/` : exemples de secrets (fichiers)
 
@@ -32,13 +31,6 @@ cp .env.prod.example .env.prod
 cp -r secrets.example secrets
 ```
 
-3. Ajouter les hostnames locaux (Linux/macOS):
-
-```bash
-sudo sh -c 'echo "127.0.0.1 staging.localhost" >> /etc/hosts'
-sudo sh -c 'echo "127.0.0.1 prod.localhost" >> /etc/hosts'
-```
-
 ## Lancer les environnements
 
 ### Dev (reload + Vite dev server)
@@ -56,7 +48,8 @@ docker compose --env-file .env.dev -f compose.yml -f compose.dev.yml up --build
 docker compose --env-file .env.staging -f compose.yml -f compose.staging.yml up -d --build
 ```
 
-- http://staging.localhost
+- Frontend: http://localhost:5174
+- Backend: http://localhost:8001/api/health
 
 ### Prod
 
@@ -64,27 +57,12 @@ docker compose --env-file .env.staging -f compose.yml -f compose.staging.yml up 
 docker compose --env-file .env.prod -f compose.yml -f compose.prod.yml up -d --build
 ```
 
-- http://prod.localhost
+- Frontend: http://localhost:5175
+- Backend: http://localhost:8002/api/health
 
 ### Staging + Prod en même temps (1 seule machine)
 
-Pour isoler les stacks, utilisez `COMPOSE_PROJECT_NAME` et **un seul reverse proxy**.
-
-1. Démarrer staging **avec** proxy:
-
-```bash
-COMPOSE_PROJECT_NAME=myapp_staging docker compose --env-file .env.staging -f compose.yml -f compose.staging.yml up -d --build
-```
-
-2. Démarrer prod **sans** proxy (le proxy de staging routtera vers prod):
-
-```bash
-COMPOSE_PROJECT_NAME=myapp_prod docker compose --env-file .env.prod -f compose.yml -f compose.prod.yml up -d --build --scale reverse_proxy=0
-```
-
-Le reverse proxy (port 80) route:
-- `staging.localhost` -> `frontend_staging` + `backend_staging`
-- `prod.localhost` -> `frontend_prod` + `backend_prod`
+Les ports étant distincts, vous pouvez lancer les deux stacks en parallèle.
 
 ## Tester avec curl
 
@@ -92,15 +70,15 @@ Le reverse proxy (port 80) route:
 
 ```bash
 curl http://localhost:8000/api/health
-curl http://staging.localhost/api/health
-curl http://prod.localhost/api/health
+curl http://localhost:8001/api/health
+curl http://localhost:8002/api/health
 ```
 
 ### Lire les items
 
 ```bash
 curl http://localhost:8000/api/items
-curl http://staging.localhost/api/items
+curl http://localhost:8001/api/items
 ```
 
 ### Ajouter un item (nécessite X-Token)
@@ -111,7 +89,7 @@ curl -X POST http://localhost:8000/api/items \
   -H 'X-Token: DEV_DEMO_SECRET' \
   -d '{"name":"hello dev"}'
 
-curl -X POST http://staging.localhost/api/items \
+curl -X POST http://localhost:8001/api/items \
   -H 'Content-Type: application/json' \
   -H 'X-Token: STAGING_DEMO_SECRET' \
   -d '{"name":"hello staging"}'
@@ -122,4 +100,3 @@ curl -X POST http://staging.localhost/api/items \
 - Le frontend utilise `import.meta.env.VITE_API_URL`.
 - En **staging/prod**, `VITE_API_URL` est injecté **au build** via `build.args` dans `compose.*.yml` et `ARG` dans `frontend/Dockerfile`.
 - Le backend lit le secret depuis `/run/secrets/api_token_secret` (monté en read-only).
-- Le reverse proxy Nginx route les requêtes `/api/*` vers le backend et le reste vers le frontend.

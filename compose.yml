@@ -1,8 +1,6 @@
 services: {}
 
 networks:
-  edge:
-    name: env_edge
   dev_net:
     name: env_dev
   staging_net:
