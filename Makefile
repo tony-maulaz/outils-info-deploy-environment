@@ -17,7 +17,7 @@ staging-up:
 	docker compose --env-file .env.staging -f compose.yml -f compose.staging.yml up -d --build
 
 staging-down:
-	docker compose --env-file .env.staging -f compose.yml -f compose.staging.yml down
+	docker compose --env-file .env.staging -f compose.yml -f compose.staging.yml down -v
 
 staging-logs:
 	docker compose --env-file .env.staging -f compose.yml -f compose.staging.yml logs -f --tail=100

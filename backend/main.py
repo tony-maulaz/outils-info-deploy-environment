@@ -92,3 +92,12 @@ def add_item(payload: dict, x_token: str = Header(default="")):
 def config():
     # Not required but useful for demo
     return {"env": APP_ENV, "log_level": LOG_LEVEL}
+
+
+@app.get("/api/token")
+def get_token():
+    # Demo endpoint: return the secret so the frontend can store it
+    secret = _get_secret()
+    if not secret:
+        raise HTTPException(status_code=500, detail="API_TOKEN_SECRET missing")
+    return {"token": secret}

@@ -20,6 +20,10 @@
 
     <section class="card">
       <h2>Items</h2>
+      <div class="token-row">
+        <button class="btn" @click="loadToken">Charger token</button>
+        <span class="token-value">Token: {{ token || '—' }}</span>
+      </div>
       <div class="row">
         <input v-model="newItem" placeholder="Nouvel item" />
         <button class="btn" @click="addItem">Ajouter</button>
@@ -45,6 +49,7 @@ const env = import.meta.env.VITE_APP_ENV || 'dev'
 const health = ref({ status: '...', env: '...', db: '...' })
 const items = ref([])
 const newItem = ref('')
+const token = ref(localStorage.getItem('x_token') || '')
 
 async function loadHealth() {
   const res = await fetch(`${apiUrl}/api/health`)
@@ -58,12 +63,12 @@ async function loadItems() {
 
 async function addItem() {
   if (!newItem.value.trim()) return
-  const token = localStorage.getItem('x_token') || ''
+  const tokenValue = localStorage.getItem('x_token') || ''
   const res = await fetch(`${apiUrl}/api/items`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Token': token
+      'X-Token': tokenValue
     },
     body: JSON.stringify({ name: newItem.value })
   })
@@ -71,6 +76,20 @@ async function addItem() {
   if (res.ok) {
     newItem.value = ''
     await loadItems()
+  } else {
+    const err = await res.json().catch(() => ({}))
+    alert(err.detail || 'Erreur')
+  }
+}
+
+async function loadToken() {
+  const res = await fetch(`${apiUrl}/api/token`)
+  if (res.ok) {
+    const data = await res.json()
+    token.value = data.token || ''
+    if (token.value) {
+      localStorage.setItem('x_token', token.value)
+    }
   } else {
     const err = await res.json().catch(() => ({}))
     alert(err.detail || 'Erreur')
@@ -137,6 +156,21 @@ onMounted(async () => {
   display: flex;
   gap: 8px;
   margin-bottom: 12px;
+}
+
+.token-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.token-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+  font-size: 12px;
+  color: #374151;
 }
 
 input {
