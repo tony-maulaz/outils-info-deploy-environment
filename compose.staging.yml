@@ -10,9 +10,11 @@ services:
       LOG_LEVEL: ${LOG_LEVEL}
       CORS_ORIGINS: ${CORS_ORIGINS}
       API_TOKEN_SECRET_PATH: /run/secrets/api_token_secret
+      DB_PASSWORD_SECRET_PATH: /run/secrets/db_password
     volumes:
       - data_staging:/data
       - ./secrets/staging/api_token_secret.txt:/run/secrets/api_token_secret:ro
+      - ./secrets/staging/db_password.txt:/run/secrets/db_password:ro
     ports:
       - "${BACKEND_PORT}:8000"
     networks:

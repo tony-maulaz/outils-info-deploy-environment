@@ -23,6 +23,7 @@ CONTRAINTES IMPORTANTES
 - Le backend lit DATABASE_URL depuis env (ex: sqlite:///data/app.db).
 - Secrets:
   - Un secret “API_TOKEN_SECRET” (ou JWT_SECRET) doit être lu depuis un fichier monté (ex: /run/secrets/api_token_secret)
+  - Simuler un mot de passe DB dans un fichier monté (ex: /run/secrets/db_password)
   - Prévoir un répertoire local ./secrets (non versionné) + exemples ./secrets.example (versionné)
 - Frontend:
   - Doit utiliser VITE_API_URL pour appeler l’API.
@@ -75,6 +76,8 @@ EXIGENCES DOCKER COMPOSE (IMPORTANT)
 - Secrets:
   - monter ./secrets/<env>/api_token_secret.txt vers /run/secrets/api_token_secret (read-only)
   - fournir un dossier ./secrets.example/<env>/api_token_secret.txt (valeur dummy) + instructions copie
+  - monter ./secrets/<env>/db_password.txt vers /run/secrets/db_password (read-only)
+  - fournir un dossier ./secrets.example/<env>/db_password.txt (valeur dummy) + instructions copie
 
 CONFIG ENVIRONNEMENTS
 - Variables non sensibles typiques dans .env.*:
@@ -87,7 +90,7 @@ CONFIG ENVIRONNEMENTS
   - CORS_ORIGINS=...
 - Secrets (fichiers):
   - API_TOKEN_SECRET (utilisé dans backend pour signer un token simple ou vérifier un header X-Token, au minimum)
-  - (Optionnel) si tu veux montrer un “DB_PASSWORD” même si SQLite n’en a pas, tu peux créer un secret “ADMIN_TOKEN” ou similaire
+  - DB_PASSWORD (simulé pour l’exemple, même si SQLite n’en a pas besoin)
 
 NIVEAU DE COMPLEXITÉ
 - Très simple, didactique, aucun superflu.

@@ -8,6 +8,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///data/app.db")
 LOG_LEVEL = os.getenv("LOG_LEVEL", "info")
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "")
 SECRET_PATH = os.getenv("API_TOKEN_SECRET_PATH", "/run/secrets/api_token_secret")
+DB_PASSWORD_SECRET_PATH = os.getenv("DB_PASSWORD_SECRET_PATH", "/run/secrets/db_password")
 
 app = FastAPI(title="Env Demo", version="1.0")
 
@@ -33,6 +34,14 @@ def _db_path_from_url(url: str) -> str:
 def _get_secret() -> str:
     try:
         with open(SECRET_PATH, "r", encoding="utf-8") as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return ""
+
+
+def _get_db_password() -> str:
+    try:
+        with open(DB_PASSWORD_SECRET_PATH, "r", encoding="utf-8") as f:
             return f.read().strip()
     except FileNotFoundError:
         return ""
@@ -91,7 +100,12 @@ def add_item(payload: dict, x_token: str = Header(default="")):
 @app.get("/api/config")
 def config():
     # Not required but useful for demo
-    return {"env": APP_ENV, "log_level": LOG_LEVEL}
+    db_password = _get_db_password()
+    return {
+        "env": APP_ENV,
+        "log_level": LOG_LEVEL,
+        "db_password_loaded": bool(db_password),
+    }
 
 
 @app.get("/api/token")

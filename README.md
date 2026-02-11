@@ -14,6 +14,7 @@ Projet pédagogique minimal pour expliquer la différence entre **variables d'en
 
 - **Variables non sensibles** : dans `.env.*` (ex: `DATABASE_URL`, `VITE_API_URL`, `LOG_LEVEL`)
 - **Secrets** : dans des fichiers montés (ex: `./secrets/<env>/api_token_secret.txt` monté vers `/run/secrets/api_token_secret`)
+- Exemple de secret “DB password” simulé : `./secrets/<env>/db_password.txt` monté vers `/run/secrets/db_password`
 
 ## Préparation
 
@@ -100,3 +101,4 @@ curl -X POST http://localhost:8001/api/items \
 - Le frontend utilise `import.meta.env.VITE_API_URL`.
 - En **staging/prod**, `VITE_API_URL` est injecté **au build** via `build.args` dans `compose.*.yml` et `ARG` dans `frontend/Dockerfile`.
 - Le backend lit le secret depuis `/run/secrets/api_token_secret` (monté en read-only).
+- Le “DB password” simulé est lu depuis `/run/secrets/db_password` (monté en read-only).

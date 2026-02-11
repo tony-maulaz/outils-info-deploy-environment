@@ -7,10 +7,12 @@ services:
       LOG_LEVEL: ${LOG_LEVEL}
       CORS_ORIGINS: ${CORS_ORIGINS}
       API_TOKEN_SECRET_PATH: /run/secrets/api_token_secret
+      DB_PASSWORD_SECRET_PATH: /run/secrets/db_password
     volumes:
       - ./backend:/app
       - data_dev:/data
       - ./secrets/dev/api_token_secret.txt:/run/secrets/api_token_secret:ro
+      - ./secrets/dev/db_password.txt:/run/secrets/db_password:ro
     ports:
       - "${BACKEND_PORT}:8000"
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
