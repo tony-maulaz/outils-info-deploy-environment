@@ -10,7 +10,7 @@ services:
       DB_PASSWORD_SECRET_PATH: /run/secrets/db_password
     volumes:
       - ./backend:/app
-      - data_dev:/data
+      # - data_dev:/data
       - ./secrets/dev/api_token_secret.txt:/run/secrets/api_token_secret:ro
       - ./secrets/dev/db_password.txt:/run/secrets/db_password:ro
     ports:

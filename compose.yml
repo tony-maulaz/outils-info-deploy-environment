@@ -9,8 +9,8 @@ networks:
     name: env_prod
 
 volumes:
-  data_dev:
-    name: data_dev
+  # data_dev:
+  #   name: data_dev
   data_staging:
     name: data_staging
   data_prod:

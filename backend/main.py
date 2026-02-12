@@ -1,5 +1,8 @@
 import os
 import sqlite3
+import time
+
+import jwt
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -75,14 +78,44 @@ def list_items():
     return [{"id": r["id"], "name": r["name"]} for r in rows]
 
 
-@app.post("/api/items")
-def add_item(payload: dict, x_token: str = Header(default="")):
-    # Basic secret check for writes
+def _issue_jwt() -> str:
     secret = _get_secret()
     if not secret:
         raise HTTPException(status_code=500, detail="API_TOKEN_SECRET missing")
-    if x_token != secret:
-        raise HTTPException(status_code=401, detail="Invalid X-Token")
+    now = int(time.time())
+    payload = {
+        "sub": "demo",
+        "env": APP_ENV,
+        "iat": now,
+        "exp": now + 3600,
+    }
+    return jwt.encode(payload, secret, algorithm="HS256")
+
+
+def _verify_jwt(authorization: str) -> dict:
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Missing Authorization")
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid Authorization")
+
+    token = authorization.removeprefix("Bearer ").strip()
+    if not token:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    secret = _get_secret()
+    if not secret:
+        raise HTTPException(status_code=500, detail="API_TOKEN_SECRET missing")
+
+    try:
+        return jwt.decode(token, secret, algorithms=["HS256"])
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+
+@app.post("/api/items")
+def add_item(payload: dict, authorization: str = Header(default="")):
+    # Basic JWT check for writes
+    _verify_jwt(authorization)
 
     name = (payload or {}).get("name", "").strip()
     if not name:
@@ -110,8 +143,5 @@ def config():
 
 @app.get("/api/token")
 def get_token():
-    # Demo endpoint: return the secret so the frontend can store it
-    secret = _get_secret()
-    if not secret:
-        raise HTTPException(status_code=500, detail="API_TOKEN_SECRET missing")
-    return {"token": secret}
+    # Demo endpoint: return a JWT so the frontend can store it
+    return {"token": _issue_jwt()}

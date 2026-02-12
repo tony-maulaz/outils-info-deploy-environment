@@ -31,7 +31,9 @@
       <ul class="list">
         <li v-for="item in items" :key="item.id">#{{ item.id }} - {{ item.name }}</li>
       </ul>
-      <div class="hint">Le POST nécessite l'en-tête <code>X-Token</code>.</div>
+      <div class="hint">
+        Le POST nécessite l'en-tête <code>Authorization: Bearer &lt;token&gt;</code>.
+      </div>
     </section>
 
     <footer class="foot">
@@ -49,7 +51,7 @@ const env = import.meta.env.VITE_APP_ENV || 'dev'
 const health = ref({ status: '...', env: '...', db: '...' })
 const items = ref([])
 const newItem = ref('')
-const token = ref(localStorage.getItem('x_token') || '')
+const token = ref(localStorage.getItem('jwt_token') || '')
 
 async function loadHealth() {
   const res = await fetch(`${apiUrl}/api/health`)
@@ -63,13 +65,16 @@ async function loadItems() {
 
 async function addItem() {
   if (!newItem.value.trim()) return
-  const tokenValue = localStorage.getItem('x_token') || ''
+  const tokenValue = localStorage.getItem('jwt_token') || ''
+  const headers = {
+    'Content-Type': 'application/json'
+  }
+  if (tokenValue) {
+    headers.Authorization = `Bearer ${tokenValue}`
+  }
   const res = await fetch(`${apiUrl}/api/items`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Token': tokenValue
-    },
+    headers,
     body: JSON.stringify({ name: newItem.value })
   })
 
@@ -88,7 +93,7 @@ async function loadToken() {
     const data = await res.json()
     token.value = data.token || ''
     if (token.value) {
-      localStorage.setItem('x_token', token.value)
+      localStorage.setItem('jwt_token', token.value)
     }
   } else {
     const err = await res.json().catch(() => ({}))

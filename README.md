@@ -82,17 +82,19 @@ curl http://localhost:8000/api/items
 curl http://localhost:8001/api/items
 ```
 
-### Ajouter un item (nécessite X-Token)
+### Ajouter un item (nécessite JWT)
 
 ```bash
+TOKEN_DEV=$(curl -s http://localhost:8000/api/token | python -c 'import json,sys; print(json.load(sys.stdin)["token"])')
 curl -X POST http://localhost:8000/api/items \
   -H 'Content-Type: application/json' \
-  -H 'X-Token: DEV_DEMO_SECRET' \
+  -H "Authorization: Bearer ${TOKEN_DEV}" \
   -d '{"name":"hello dev"}'
 
+TOKEN_STAGING=$(curl -s http://localhost:8001/api/token | python -c 'import json,sys; print(json.load(sys.stdin)["token"])')
 curl -X POST http://localhost:8001/api/items \
   -H 'Content-Type: application/json' \
-  -H 'X-Token: STAGING_DEMO_SECRET' \
+  -H "Authorization: Bearer ${TOKEN_STAGING}" \
   -d '{"name":"hello staging"}'
 ```
 
@@ -100,5 +102,5 @@ curl -X POST http://localhost:8001/api/items \
 
 - Le frontend utilise `import.meta.env.VITE_API_URL`.
 - En **staging/prod**, `VITE_API_URL` est injecté **au build** via `build.args` dans `compose.*.yml` et `ARG` dans `frontend/Dockerfile`.
-- Le backend lit le secret depuis `/run/secrets/api_token_secret` (monté en read-only).
+- Le backend lit le secret depuis `/run/secrets/api_token_secret` (monté en read-only) pour signer/vérifier les JWT.
 - Le “DB password” simulé est lu depuis `/run/secrets/db_password` (monté en read-only).

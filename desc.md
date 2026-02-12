@@ -89,7 +89,7 @@ CONFIG ENVIRONNEMENTS
   - VITE_API_URL=http://localhost:8000 (dev) / http://localhost:8001 (staging) / http://localhost:8002 (prod)
   - CORS_ORIGINS=...
 - Secrets (fichiers):
-  - API_TOKEN_SECRET (utilisé dans backend pour signer un token simple ou vérifier un header X-Token, au minimum)
+  - API_TOKEN_SECRET (utilisé dans backend pour signer/vérifier un JWT, au minimum)
   - DB_PASSWORD (simulé pour l’exemple, même si SQLite n’en a pas besoin)
 
 NIVEAU DE COMPLEXITÉ
