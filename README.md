@@ -104,3 +104,14 @@ curl -X POST http://localhost:8001/api/items \
 - En **staging/prod**, `VITE_API_URL` est injecté **au build** via `build.args` dans `compose.*.yml` et `ARG` dans `frontend/Dockerfile`.
 - Le backend lit le secret depuis `/run/secrets/api_token_secret` (monté en read-only) pour signer/vérifier les JWT.
 - Le “DB password” simulé est lu depuis `/run/secrets/db_password` (monté en read-only).
+
+### JWT et stockage du token (choix pédagogique)
+
+Le endpoint `GET /api/token` délivre un JWT **sans aucune authentification préalable**, et le frontend le stocke dans le `localStorage`. Ces deux choix sont **intentionnellement simplifiés** pour la démo.
+
+En production réelle, ces pratiques posent des problèmes de sécurité :
+
+- **`/api/token` sans auth** : n'importe qui peut obtenir un token valide. En prod, ce endpoint devrait exiger des credentials (login/mot de passe, OAuth, etc.).
+- **`localStorage`** : accessible par tout JavaScript sur la page, donc vulnérable aux attaques XSS. L'alternative recommandée est un cookie `HttpOnly` (inaccessible au JavaScript), avec les flags `Secure` et `SameSite=Strict`.
+
+Ces simplifications permettent de se concentrer sur la gestion des environnements sans complexifier l'authentification.

@@ -1,4 +1,22 @@
-.PHONY: dev-up dev-down dev-logs staging-up staging-down staging-logs prod-up prod-down prod-logs
+.PHONY: setup dev-up dev-down dev-logs staging-up staging-down staging-logs prod-up prod-down prod-logs
+
+# Setup
+
+setup:
+	@for env in dev staging prod; do \
+		if [ ! -f .env.$$env ]; then \
+			cp .env.$$env.example .env.$$env; \
+			echo "Created .env.$$env"; \
+		else \
+			echo ".env.$$env already exists, skipping"; \
+		fi; \
+	done
+	@if [ ! -d secrets ]; then \
+		cp -r secrets.example secrets; \
+		echo "Created secrets/"; \
+	else \
+		echo "secrets/ already exists, skipping"; \
+	fi
 
 # Dev
 
@@ -17,7 +35,7 @@ staging-up:
 	docker compose --env-file .env.staging -f compose.yml -f compose.staging.yml up -d --build
 
 staging-down:
-	docker compose --env-file .env.staging -f compose.yml -f compose.staging.yml down -v
+	docker compose --env-file .env.staging -f compose.yml -f compose.staging.yml down
 
 staging-logs:
 	docker compose --env-file .env.staging -f compose.yml -f compose.staging.yml logs -f --tail=100
