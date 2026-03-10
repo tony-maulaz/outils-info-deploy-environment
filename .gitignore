@@ -12,3 +12,4 @@ dist
 .git
 .DS_Store
 npm-debug.log
+.claude/
